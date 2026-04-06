@@ -1,0 +1,1 @@
+# Notification 테이블 SQLAlchemy 모델 정의
