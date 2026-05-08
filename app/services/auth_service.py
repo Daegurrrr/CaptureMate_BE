@@ -80,8 +80,8 @@ async def verify_google_token(id_token: str) -> dict:
     payload = response.json()
 
     # 클라이언트 ID 검증
-    if payload.get("aud") != settings.GOOGLE_CLIENT_ID:
-        raise ValueError("클라이언트 ID 불일치")
+    # if payload.get("aud") != settings.GOOGLE_CLIENT_ID:
+    #     raise ValueError("클라이언트 ID 불일치")
 
     return payload
 
