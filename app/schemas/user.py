@@ -1,6 +1,5 @@
 # User 요청/응답 스키마
-
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 class AppleLoginRequest(BaseModel):
     identity_token: str
@@ -13,3 +12,13 @@ class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+    
+class RegisterRequest(BaseModel):
+    login_id: str
+    password: str
+    username: str
+    email: EmailStr
+
+class LoginRequest(BaseModel):
+    login_id: str
+    password: str
