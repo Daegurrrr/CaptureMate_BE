@@ -20,9 +20,15 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # ── 로컬 ──────────────────────────────────────────────
 
 async def local_register(data: RegisterRequest, db: AsyncSession) -> dict:
+    # login_id 중복 체크
     result = await db.execute(select(User).where(User.login_id == data.login_id))
     if result.scalar_one_or_none():
         raise ValueError("이미 사용 중인 아이디입니다")
+
+    # email 중복 체크
+    result = await db.execute(select(User).where(User.email == data.email))
+    if result.scalar_one_or_none():
+        raise ValueError("이미 사용 중인 이메일입니다")
 
     user = User(
         auth_provider="local",
