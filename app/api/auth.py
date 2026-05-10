@@ -54,7 +54,9 @@ async def login_endpoint(
 
 # 로그아웃
 @router.post("/logout")
-async def logout_endpoint():
+async def logout_endpoint(
+    current_user_id: int = Depends(get_current_user)
+):
     return {"message": "로그아웃 되었습니다"}
 
 
