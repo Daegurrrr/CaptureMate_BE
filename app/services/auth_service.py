@@ -168,3 +168,43 @@ async def google_login(id_token: str, db: AsyncSession) -> dict:
         "refresh_token": create_refresh_token(user.user_id),
         "token_type": "bearer"
     }
+    
+    # ── 카카오 ──────────────────────────────────────────────
+
+KAKAO_USER_INFO_URL = "https://kapi.kakao.com/v2/user/me"
+
+async def kakao_login(access_token: str, db: AsyncSession) -> dict:
+    # 카카오 유저 정보 조회
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            KAKAO_USER_INFO_URL,
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+    if response.status_code != 200:
+        raise ValueError("유효하지 않은 카카오 토큰")
+
+    payload = response.json()
+    social_id = str(payload["id"])
+    kakao_account = payload.get("kakao_account", {})
+    username = kakao_account.get("profile", {}).get("nickname", "카카오유저")
+
+    # 기존 유저 조회
+    result = await db.execute(select(User).where(User.social_id == social_id))
+    user = result.scalar_one_or_none()
+
+    # 신규 유저면 생성
+    if not user:
+        user = User(
+            auth_provider="kakao",
+            social_id=social_id,
+            username=username,
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
+    return {
+        "access_token": create_access_token(user.user_id),
+        "refresh_token": create_refresh_token(user.user_id),
+        "token_type": "bearer"
+    }

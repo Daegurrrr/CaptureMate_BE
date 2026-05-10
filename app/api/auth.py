@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.schemas.user import AppleLoginRequest, GoogleLoginRequest, TokenResponse, RegisterRequest, LoginRequest
-from app.services.auth_service import apple_login, google_login, local_register, local_login, delete_account
+from app.schemas.user import AppleLoginRequest, GoogleLoginRequest, KakaoLoginRequest, TokenResponse, RegisterRequest, LoginRequest
+from app.services.auth_service import apple_login, google_login, kakao_login, local_register, local_login, delete_account
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -26,6 +26,18 @@ async def google_login_endpoint(
     db: AsyncSession = Depends(get_db)
 ):
     return await google_login(request.id_token, db)
+
+
+# 카카오 로그인/회원가입
+@router.post("/kakao", response_model=TokenResponse)
+async def kakao_login_endpoint(
+    request: KakaoLoginRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        return await kakao_login(request.access_token, db)
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
 
 
 # 로컬 회원가입

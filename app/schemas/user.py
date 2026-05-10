@@ -8,6 +8,9 @@ class AppleLoginRequest(BaseModel):
 class GoogleLoginRequest(BaseModel):
     id_token: str  # 구글에서 받은 id_token
     
+class KakaoLoginRequest(BaseModel):
+    access_token: str
+    
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str

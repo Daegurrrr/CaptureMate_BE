@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
 
+    # Kakao OAuth
+    KAKAO_REST_API_KEY : str
+    
     class Config:
         env_file = ".env"
 
