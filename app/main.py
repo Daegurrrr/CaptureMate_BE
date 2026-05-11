@@ -10,7 +10,6 @@ app = FastAPI(
 app.include_router(screenshot.router, prefix="/screenshot")
 app.include_router(auth.router)
 
-
 @app.get("/")
 async def root():
     return {"message": "CaptureMate API 서버 정상 작동 중"}
