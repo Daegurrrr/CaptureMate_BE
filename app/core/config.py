@@ -12,8 +12,12 @@ class Settings(BaseSettings):
     AWS_SECRET_ACCESS_KEY: str
     AWS_REGION: str
     S3_BUCKET_NAME: str
+    
+    # KaKaoMap
+    KAKAO_REST_API_KEY: str
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 settings = Settings()
