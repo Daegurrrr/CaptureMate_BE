@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     AWS_REGION: str
     S3_BUCKET_NAME: str
     
+<<<<<<< feature/kakao-map
+    # KaKaoMap
+    KAKAO_REST_API_KEY: str
+=======
     # JWT
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
@@ -19,6 +23,7 @@ class Settings(BaseSettings):
     
      # Apple OAuth
     APPLE_BUNDLE_ID: str
+>>>>>>> develop
 
     # Google OAuth
     GOOGLE_CLIENT_ID: str
@@ -29,6 +34,7 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 settings = Settings()
 
