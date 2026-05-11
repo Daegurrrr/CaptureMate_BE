@@ -8,7 +8,7 @@ def search_place(query: str):
     url = "https://dapi.kakao.com/v2/local/search/keyword.json"
 
     headers = {
-        "Authorization": f"KakaoAK {settings.KAKAO_REST_API_KEY}"
+        "Authorization": f"KakaoAK {settings.KAKAOMAP_REST_API_KEY}"
     }
 
     params = {
