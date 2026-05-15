@@ -6,6 +6,8 @@ from app.core.database import get_db
 from app.models.screenshot import Screenshot
 from datetime import datetime
 import uuid
+from app.ai.ocr import extract_text
+import os
 
 router = APIRouter()
 
@@ -30,3 +32,18 @@ async def upload_screenshot(
     await db.commit()
 
     return {"screenshot_id": screenshot.screenshot_id, "url": image_url}
+
+
+@router.post("/ocr")
+async def ocr_screenshot(
+    file: UploadFile = File(...)
+):
+    tmp_path = f"tmp_{file.filename}"
+    with open(tmp_path, "wb") as f:
+        f.write(await file.read())
+
+    try:
+        text = extract_text(tmp_path)
+        return {"ocr_text": text}
+    finally:
+        os.remove(tmp_path)
