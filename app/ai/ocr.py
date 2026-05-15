@@ -6,7 +6,6 @@ from collections import Counter
 from paddleocr import PaddleOCR
 from PIL import Image
 
-''' <기존 코드 paddleocr 3.x>
 
 ocr = PaddleOCR(
     text_detection_model_name="PP-OCRv5_mobile_det",
@@ -15,9 +14,6 @@ ocr = PaddleOCR(
     use_doc_unwarping=False,
     use_textline_orientation=False,
 )
-'''
-# paddleocr 2.x 호환
-ocr = PaddleOCR(use_angle_cls=True, lang='korean')
 
 IMAGE_FOLDER = "images"
 
@@ -323,29 +319,15 @@ def build_classification_text(lines: list[str]) -> str:
     return text.strip()
 
 
-
-# 기존 코드
-
-# def extract_ocr_fields(result_page: dict):
-#     texts = result_page.get("rec_texts", [])
-#     scores = result_page.get("rec_scores", [])
-#     boxes = (
-#         result_page.get("dt_polys")
-#         or result_page.get("rec_boxes")
-#         or result_page.get("text_boxes")
-#         or []
-#     )
-#     return texts, scores, boxes
-
-
-# paddleocr 2.x 형식: [[box, (text, score)], ...]
-def extract_ocr_fields(result_page):
-    texts, scores, boxes = [], [], []
-    for line in result_page:
-        box, (text, score) = line
-        texts.append(text)
-        scores.append(score)
-        boxes.append(box)
+def extract_ocr_fields(result_page: dict):
+    texts = result_page.get("rec_texts", [])
+    scores = result_page.get("rec_scores", [])
+    boxes = (
+        result_page.get("dt_polys")
+        or result_page.get("rec_boxes")
+        or result_page.get("text_boxes")
+        or []
+    )
     return texts, scores, boxes
 
 
@@ -353,7 +335,7 @@ def process_image_for_classification(image_path: str) -> dict:
     with Image.open(image_path) as img:
         _, image_height = img.size
 
-    result = ocr.ocr(image_path) # paddleocr 2.x 호환 / 기존:result = ocr.predict(image_path)
+    result = ocr.predict(image_path)
 
     if not result or not result[0]:
         return {
