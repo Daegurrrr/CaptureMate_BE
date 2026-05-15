@@ -21,7 +21,7 @@ async def upload_screenshot(
     # DB 저장
     screenshot = Screenshot(
         screenshot_id = str(uuid.uuid4())[:24],
-        user_id       = "test_user",  # 나중에 JWT로 교체
+        user_id       = 1,
         image_url     = image_url,
         status        = "pending",
         created_at    = datetime.utcnow()
