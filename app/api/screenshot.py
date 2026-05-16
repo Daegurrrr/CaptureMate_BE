@@ -7,6 +7,7 @@ from app.models.screenshot import Screenshot
 from datetime import datetime
 import uuid
 from app.ai.ocr import extract_text
+from app.ai.classifier import final_classify_with_confidence
 import os
 
 router = APIRouter()
@@ -34,8 +35,8 @@ async def upload_screenshot(
     return {"screenshot_id": screenshot.screenshot_id, "url": image_url}
 
 
-@router.post("/ocr")
-async def ocr_screenshot(
+@router.post("/ai")
+async def analyze_screenshot(
     file: UploadFile = File(...)
 ):
     tmp_path = f"tmp_{file.filename}"
@@ -44,6 +45,12 @@ async def ocr_screenshot(
 
     try:
         text = extract_text(tmp_path)
-        return {"ocr_text": text}
+        category, confidence, level, probs = final_classify_with_confidence(text)
+        return {
+            "ocr_text": text,
+            "category": category,
+            "confidence": round(confidence, 4),
+            "confidence_level": level,
+        }
     finally:
         os.remove(tmp_path)
