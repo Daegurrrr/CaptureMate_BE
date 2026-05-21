@@ -3,9 +3,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
-from app.core.security import get_current_user
 from app.schemas.user import AppleLoginRequest, GoogleLoginRequest, KakaoLoginRequest, TokenResponse, RegisterRequest, LoginRequest
 from app.services.auth_service import apple_login, google_login, kakao_login, local_register, local_login, delete_account
+from app.core.security import get_current_user, create_access_token, decode_token, bearer_scheme
+from fastapi.security import HTTPAuthorizationCredentials
+import jwt
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -83,3 +85,22 @@ async def withdraw_endpoint(
         return {"message": "회원탈퇴 완료"}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    
+
+
+# access token 재발급
+@router.post("/refresh")
+async def refresh_token_endpoint(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)
+):
+    try:
+        payload = decode_token(credentials.credentials)
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="refresh token이 아닙니다")
+        user_id = int(payload["sub"])
+        new_access_token = create_access_token(user_id)
+        return {"access_token": new_access_token, "token_type": "bearer"}
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="refresh token이 만료되었습니다")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다")
