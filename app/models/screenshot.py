@@ -5,7 +5,7 @@ from app.core.database import Base
 class Screenshot(Base):
     __tablename__ = "screenshot"
 
-    screenshot_id    = Column(String(26), primary_key=True)
+    screenshot_id    = Column(Integer, primary_key=True, autoincrement=True)
     user_id          = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     local_identifier = Column(String(255), nullable=False)
     ocr_text         = Column(Text, nullable=True)

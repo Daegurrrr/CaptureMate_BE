@@ -5,7 +5,6 @@ from app.core.database import get_db
 from app.models.screenshot import Screenshot
 from app.models.analysis_result import AnalysisResult
 from datetime import datetime, timezone, timedelta
-import uuid
 import os
 from app.ai.ocr import extract_text
 from app.ai.classifier import final_classify_with_confidence
@@ -33,14 +32,10 @@ async def upload_screenshot(
         # KoBERT 분류 (카테고리, 신뢰도, 신뢰도 레벨)
         category, confidence, level, _ = final_classify_with_confidence(ocr_text)
     finally:
-        # 처리 완료 후 임시 파일 삭제
         os.remove(tmp_path)
-
-    screenshot_id = str(uuid.uuid4())[:24]
 
     # Screenshot 저장 (local_identifier로 기기 내 사진 식별)
     screenshot = Screenshot(
-        screenshot_id    = screenshot_id,
         user_id          = 1,  # 추후 JWT 미들웨어로 교체
         local_identifier = local_identifier,
         ocr_text         = ocr_text,
@@ -52,8 +47,7 @@ async def upload_screenshot(
 
     # AnalysisResult 저장
     analysis = AnalysisResult(
-        analysis_id      = str(uuid.uuid4())[:24],
-        screenshot_id    = screenshot_id,
+        screenshot_id    = screenshot.screenshot_id,
         category         = category,
         confidence_score = float(confidence),
     )
@@ -61,7 +55,7 @@ async def upload_screenshot(
     await db.commit()
 
     return {
-        "screenshot_id": screenshot_id,
+        "screenshot_id": screenshot.screenshot_id,
         "category": category,
         "confidence": round(float(confidence), 4),
         "confidence_level": level,
