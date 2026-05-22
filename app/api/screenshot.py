@@ -71,23 +71,26 @@ async def upload_screenshot(
 
     # 카테고리별 테이블 저장
     if category == "장소":
-        db.add(Place(
-            analysis_id = analysis.analysis_id,
-            place_name  = gemini_result.get("place_name") or "unknown",
-            address     = gemini_result.get("address"),
-        ))
+       for item in gemini_result.get("items", []):
+            db.add(Place(
+                analysis_id = analysis.analysis_id,
+                place_name  = item.get("place_name") or "unknown",
+                address     = item.get("address"),
+            ))
     elif category == "일정":
-        db.add(Schedule(
-            analysis_id = analysis.analysis_id,
-            title       = gemini_result.get("title"),
-            start_at    = parse_dt(gemini_result.get("start_at")),  
-            end_at      = parse_dt(gemini_result.get("end_at")),  
-        ))
+        for item in gemini_result.get("items", []):
+            db.add(Schedule(
+                analysis_id = analysis.analysis_id,
+                title       = item.get("title"),
+                start_at    = parse_dt(item.get("start_at")),  
+                end_at      = parse_dt(item.get("end_at")),   
+            ))
     elif category == "쇼핑":
-        db.add(Shopping(
-            analysis_id  = analysis.analysis_id,
-            product_name = gemini_result.get("product_name"),
-        ))
+        for item in gemini_result.get("items", []):
+            db.add(Shopping(
+                analysis_id  = analysis.analysis_id,
+                product_name = item.get("product_name"),
+            ))
     elif category in ("메모", "기타"):
         db.add(Memo(
             analysis_id = analysis.analysis_id,
