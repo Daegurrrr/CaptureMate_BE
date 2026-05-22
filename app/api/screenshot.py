@@ -26,7 +26,7 @@ def parse_dt(val):
     except:
         return None
 
-@router.post("/upload")
+@router.post("")
 async def upload_screenshot(
     file: UploadFile = File(...),           # iOS에서 전송한 원본 이미지
     local_identifier: str = Form(...),      # iOS PhotoKit 로컬 식별자
