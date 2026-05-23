@@ -16,6 +16,8 @@ requests
 email-validator
 passlib[bcrypt]
 bcrypt==4.0.1
+google-genai
+
 
 #AI
 paddleocr==3.4.0
