@@ -9,11 +9,7 @@ app = FastAPI(
 )
 
 app.include_router(screenshot.router, prefix="/screenshots")
-app.include_router(
-    place.router,
-    prefix="/places"
-)
-
+app.include_router(place.router)
 app.include_router(auth.router)
 
 @app.get("/")

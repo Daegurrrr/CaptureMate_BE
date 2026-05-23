@@ -15,6 +15,7 @@ from datetime import datetime, timezone, timedelta
 import os
 from app.ai.ocr import extract_text
 from app.ai.classifier import final_classify_with_confidence, confidence_level
+from app.services.kakao_service import search_place
 
 KST = timezone(timedelta(hours=9))
 
@@ -74,11 +75,19 @@ async def upload_screenshot(
 
     # 카테고리별 테이블 저장
     if category == "장소":
-       for item in gemini_result.get("items", []):
+        for item in gemini_result.get("items", []):
+            place_name = item.get("place_name") or "unknown"
+        
+            kakao = search_place(place_name)
+            kakao_place = kakao.get("places", [{}])[0] if kakao.get("success") else {}
+        
             db.add(Place(
                 analysis_id = analysis.analysis_id,
-                place_name  = item.get("place_name") or "unknown",
-                address     = item.get("address"),
+                place_name  = place_name,
+                address     = kakao_place.get("address") or item.get("address"),
+                latitude    = kakao_place.get("latitude"),
+                longitude   = kakao_place.get("longitude"),
+                map_url     = kakao_place.get("place_url"),
             ))
     elif category == "일정":
         for item in gemini_result.get("items", []):
