@@ -1,6 +1,8 @@
 # 스크린샷 업로드 엔드포인트
-from fastapi import APIRouter, UploadFile, File, Form, Depends
+import json
+from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.core.database import get_db
 from app.models.screenshot import Screenshot
 from app.models.analysis_result import AnalysisResult
@@ -12,7 +14,7 @@ from app.services.gemini_service import analyze_with_gemini
 from datetime import datetime, timezone, timedelta
 import os
 from app.ai.ocr import extract_text
-from app.ai.classifier import final_classify_with_confidence
+from app.ai.classifier import final_classify_with_confidence, confidence_level
 
 KST = timezone(timedelta(hours=9))
 
@@ -58,16 +60,17 @@ async def upload_screenshot(
     db.add(screenshot)
     await db.flush()  
 
+    # Gemini 프롬프팅으로 카테고리별 필드 추출
+    gemini_result = await analyze_with_gemini(category, ocr_text)
+
     analysis = AnalysisResult(
         screenshot_id    = screenshot.screenshot_id,
         category         = category,
         confidence_score = float(confidence), 
+        summary          = json.dumps(gemini_result, ensure_ascii=False), 
     )
     db.add(analysis)
     await db.flush() 
-
-    # Gemini 프롬프팅으로 카테고리별 필드 추출
-    gemini_result = await analyze_with_gemini(category, ocr_text)
 
     # 카테고리별 테이블 저장
     if category == "장소":
@@ -128,3 +131,41 @@ async def analyze_screenshot(
         }
     finally:
         os.remove(tmp_path)
+
+
+# 스크린샷 상세 조회 엔드포인트
+@router.get("/{screenshot_id}")
+async def get_screenshot(
+    screenshot_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(
+        select(Screenshot).where(Screenshot.screenshot_id == screenshot_id)
+    )
+    screenshot = result.scalar_one_or_none()
+
+    if not screenshot:
+        raise HTTPException(status_code=404, detail="존재하지 않는 캡처 ID")
+
+    analysis_result = await db.execute(
+        select(AnalysisResult).where(AnalysisResult.screenshot_id == screenshot_id)
+    )
+    analysis = analysis_result.scalar_one_or_none()
+
+    return {
+        "success": True,
+        "data": {
+            "screenshot_id": screenshot.screenshot_id,
+            "local_identifier": screenshot.local_identifier,
+            "ocr_text": screenshot.ocr_text,
+            "status": screenshot.status,
+            "created_at": screenshot.created_at,
+            "analysis": {
+                "analysis_id": analysis.analysis_id,
+                "category": analysis.category,
+                "confidence_score": analysis.confidence_score,
+                "summary": json.loads(analysis.summary) if analysis.summary else None,
+                "analyzed_at": analysis.analyzed_at,
+            } if analysis else None
+        }
+    }
