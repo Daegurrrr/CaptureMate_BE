@@ -19,7 +19,7 @@ from app.services.kakao_service import search_place
 
 KST = timezone(timedelta(hours=9))
 
-router = APIRouter()
+router = APIRouter(tags=["Screenshots"])
 
 def parse_dt(val):
     if val is None:
@@ -29,7 +29,7 @@ def parse_dt(val):
     except:
         return None
 
-@router.post("")
+@router.post("", summary="스크린샷 업로드")
 async def upload_screenshot(
     file: UploadFile = File(...),           # iOS에서 전송한 원본 이미지
     local_identifier: str = Form(...),      # iOS PhotoKit 로컬 식별자
@@ -120,7 +120,7 @@ async def upload_screenshot(
         "gemini_result": gemini_result,
     }
 
-@router.post("/ai")
+@router.post("/ai", summary="OCR 및 분류 테스트")
 async def analyze_screenshot(
     file: UploadFile = File(...)
 ):
@@ -142,7 +142,7 @@ async def analyze_screenshot(
         os.remove(tmp_path)
 
 # 스크린샷 목록 조회 엔드포인트
-@router.get("")
+@router.get("", summary="스크린샷 목록 조회")
 async def get_screenshots(
     status: str = None,
     page: int = 1,
@@ -179,7 +179,7 @@ async def get_screenshots(
     }
     
 # 스크린샷 상세 조회 엔드포인트
-@router.get("/{screenshot_id}")
+@router.get("/{screenshot_id}", summary="스크린샷 상세 조회")
 async def get_screenshot(
     screenshot_id: int,
     db: AsyncSession = Depends(get_db)

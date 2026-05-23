@@ -6,16 +6,10 @@ from app.models.place import Place
 from app.models.analysis_result import AnalysisResult
 from app.services.kakao_service import search_place
 
-router = APIRouter()
+router = APIRouter(tags=["Places"])
 
-@router.get("/search")
-def place_search(query: str):
-    result = search_place(query)
-    return {"success": True, "data": result}
-
-
-# 1. 저장된 장소 목록 조회
-@router.get("/analysis/{analysis_id}/places")
+# 1. 장소 목록 조회
+@router.get("/analysis/{analysis_id}/places", summary="장소 목록 조회")
 async def get_places(
     analysis_id: int,
     db: AsyncSession = Depends(get_db)
@@ -49,7 +43,7 @@ async def get_places(
 
 
 # 2. 장소 상세 조회
-@router.get("/places/{place_id}")
+@router.get("/places/{place_id}", summary="장소 상세 조회")
 async def get_place(
     place_id: int,
     db: AsyncSession = Depends(get_db)
@@ -77,7 +71,7 @@ async def get_place(
 
 
 # 3. 추천액션 완료 처리
-@router.patch("/places/{place_id}/action")
+@router.patch("/places/{place_id}/action", summary="추천액션 완료 처리")
 async def complete_action(
     place_id: int,
     db: AsyncSession = Depends(get_db)

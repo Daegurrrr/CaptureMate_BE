@@ -9,11 +9,11 @@ from app.core.security import get_current_user, create_access_token, decode_toke
 from fastapi.security import HTTPAuthorizationCredentials
 import jwt
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 # 애플 로그인/회원가입
-@router.post("/apple", response_model=TokenResponse)
+@router.post("/apple", response_model=TokenResponse, summary="애플 로그인/회원가입")
 async def apple_login_endpoint(
     request: AppleLoginRequest,
     db: AsyncSession = Depends(get_db)
@@ -22,7 +22,7 @@ async def apple_login_endpoint(
 
 
 # 구글 로그인/회원가입
-@router.post("/google", response_model=TokenResponse)
+@router.post("/google", response_model=TokenResponse, summary="구글 로그인/회원가입")
 async def google_login_endpoint(
     request: GoogleLoginRequest,
     db: AsyncSession = Depends(get_db)
@@ -31,7 +31,7 @@ async def google_login_endpoint(
 
 
 # 카카오 로그인/회원가입
-@router.post("/kakao", response_model=TokenResponse)
+@router.post("/kakao", response_model=TokenResponse, summary="카카오 로그인/회원가입")
 async def kakao_login_endpoint(
     request: KakaoLoginRequest,
     db: AsyncSession = Depends(get_db)
@@ -43,7 +43,7 @@ async def kakao_login_endpoint(
 
 
 # 로컬 회원가입
-@router.post("/register", response_model=TokenResponse)
+@router.post("/register", response_model=TokenResponse, summary="로컬 회원가입")
 async def register_endpoint(
     request: RegisterRequest,
     db: AsyncSession = Depends(get_db)
@@ -55,7 +55,7 @@ async def register_endpoint(
 
 
 # 로컬 로그인
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login", response_model=TokenResponse, summary="로컬 로그인")
 async def login_endpoint(
     request: LoginRequest,
     db: AsyncSession = Depends(get_db)
@@ -67,7 +67,7 @@ async def login_endpoint(
 
 
 # 로그아웃
-@router.post("/logout")
+@router.post("/logout", summary="로그아웃")
 async def logout_endpoint(
     current_user_id: int = Depends(get_current_user)
 ):
@@ -75,7 +75,7 @@ async def logout_endpoint(
 
 
 # 회원탈퇴
-@router.delete("/me")
+@router.delete("/me", summary="회원 탈퇴")
 async def withdraw_endpoint(
     current_user_id: int = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
@@ -89,7 +89,7 @@ async def withdraw_endpoint(
 
 
 # access token 재발급
-@router.post("/refresh")
+@router.post("/refresh", summary="액세스 토큰 재발급")
 async def refresh_token_endpoint(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)
 ):
