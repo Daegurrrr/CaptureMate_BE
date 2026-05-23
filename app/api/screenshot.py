@@ -2,7 +2,7 @@
 import json
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from app.core.database import get_db
 from app.models.screenshot import Screenshot
 from app.models.analysis_result import AnalysisResult
@@ -132,7 +132,43 @@ async def analyze_screenshot(
     finally:
         os.remove(tmp_path)
 
+# 스크린샷 목록 조회 엔드포인트
+@router.get("")
+async def get_screenshots(
+    status: str = None,
+    page: int = 1,
+    limit: int = 10,
+    db: AsyncSession = Depends(get_db)
+):
+    query = select(Screenshot).where(Screenshot.user_id == 1)
 
+    if status:
+        query = query.where(Screenshot.status == status)
+
+    # 전체 개수
+    count_result = await db.execute(select(func.count()).select_from(query.subquery()))
+    total = count_result.scalar()
+
+    # 페이지네이션
+    query = query.order_by(Screenshot.created_at.desc()).offset((page - 1) * limit).limit(limit)
+    result = await db.execute(query)
+    screenshots = result.scalars().all()
+
+    return {
+        "success": True,
+        "data": [
+            {
+                "screenshot_id": s.screenshot_id,
+                "local_identifier": s.local_identifier,
+                "status": s.status,
+                "created_at": s.created_at,
+            }
+            for s in screenshots
+        ],
+        "total": total,
+        "page": page,
+    }
+    
 # 스크린샷 상세 조회 엔드포인트
 @router.get("/{screenshot_id}")
 async def get_screenshot(
