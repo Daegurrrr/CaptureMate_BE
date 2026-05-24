@@ -218,6 +218,45 @@ async def get_screenshot(
                 }
                 for p in places_result.scalars().all()
             ]
+        elif analysis.category == "일정":
+            schedules_result = await db.execute(
+                select(Schedule).where(Schedule.analysis_id == analysis.analysis_id)
+            )
+            items = [
+                {
+                    "schedule_id": s.schedule_id,
+                    "title": s.title,
+                    "start_at": s.start_at,
+                    "end_at": s.end_at,
+                    "is_action_completed": s.is_action_completed,
+                }
+                for s in schedules_result.scalars().all()
+            ]
+        elif analysis.category == "쇼핑":
+            shoppings_result = await db.execute(
+                select(Shopping).where(Shopping.analysis_id == analysis.analysis_id)
+            )
+            items = [
+                {
+                    "shopping_id": s.shopping_id,
+                    "product_name": s.product_name,
+                    "shopping_url": s.shopping_url,
+                    "is_action_completed": s.is_action_completed,
+                }
+                for s in shoppings_result.scalars().all()
+            ]
+        elif analysis.category in ("메모", "기타"):
+            memos_result = await db.execute(
+                select(Memo).where(Memo.analysis_id == analysis.analysis_id)
+            )
+            items = [
+                {
+                    "memo_id": m.memo_id,
+                    "title": m.title,
+                    "content": m.content,
+                }
+                for m in memos_result.scalars().all()
+            ]
             
     return {
         "success": True,
@@ -231,7 +270,7 @@ async def get_screenshot(
                 "analysis_id": analysis.analysis_id,
                 "category": analysis.category,
                 "confidence_score": analysis.confidence_score,
-                "summary": json.loads(analysis.summary) if analysis.summary and analysis.category in ("일정", "메모", "기타") else None,
+                # “summary": json.loads(analysis.summary) if analysis.summary and analysis.category in ("일정", "메모", "기타") else None,
                 "analyzed_at": analysis.analyzed_at,
                 "items": items,
             } if analysis else None
