@@ -200,6 +200,25 @@ async def get_screenshot(
     )
     analysis = analysis_result.scalar_one_or_none()
 
+    items = []
+    if analysis:
+        if analysis.category == "장소":
+            places_result = await db.execute(
+                select(Place).where(Place.analysis_id == analysis.analysis_id)
+            )
+            items = [
+                {
+                    "place_id": p.place_id,
+                    "place_name": p.place_name,
+                    "address": p.address,
+                    "latitude": p.latitude,
+                    "longitude": p.longitude,
+                    "map_url": p.map_url,
+                    "is_action_completed": p.is_action_completed,
+                }
+                for p in places_result.scalars().all()
+            ]
+            
     return {
         "success": True,
         "data": {
@@ -212,8 +231,9 @@ async def get_screenshot(
                 "analysis_id": analysis.analysis_id,
                 "category": analysis.category,
                 "confidence_score": analysis.confidence_score,
-                "summary": json.loads(analysis.summary) if analysis.summary else None,
+                "summary": json.loads(analysis.summary) if analysis.summary and analysis.category in ("일정", "메모", "기타") else None,
                 "analyzed_at": analysis.analyzed_at,
+                "items": items,
             } if analysis else None
         }
     }
