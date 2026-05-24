@@ -16,6 +16,7 @@ import os
 from app.ai.ocr import extract_text
 from app.ai.classifier import final_classify_with_confidence, confidence_level
 from app.services.kakao_service import search_place
+from app.services.naver_service import search_shopping
 
 KST = timezone(timedelta(hours=9))
 
@@ -99,9 +100,13 @@ async def upload_screenshot(
             ))
     elif category == "쇼핑":
         for item in gemini_result.get("items", []):
+            product_name = item.get("product_name")
+            shopping_url = search_shopping(product_name) if product_name else None
+        
             db.add(Shopping(
                 analysis_id  = analysis.analysis_id,
                 product_name = item.get("product_name"),
+                shopping_url = shopping_url,
             ))
     elif category in ("메모", "기타"):
         db.add(Memo(
