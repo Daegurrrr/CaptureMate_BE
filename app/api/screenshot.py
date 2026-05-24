@@ -178,22 +178,25 @@ async def get_screenshots(
         "page": page,
     }
     
-# 스크린샷 상세 조회 엔드포인트
-@router.get("/{screenshot_id}", summary="스크린샷 상세 조회")
+# 스크린샷 상세 조회 엔드포인트 (local_identifier query parameter로 조회)
+@router.get("/detail", summary="스크린샷 상세 조회")
 async def get_screenshot(
-    screenshot_id: int,
+    local_identifier: str,
     db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(
-        select(Screenshot).where(Screenshot.screenshot_id == screenshot_id)
+        select(Screenshot).where(
+            Screenshot.local_identifier == local_identifier,
+            Screenshot.user_id == 1  # 추후 JWT 미들웨어로 교체
+        )
     )
     screenshot = result.scalar_one_or_none()
 
     if not screenshot:
-        raise HTTPException(status_code=404, detail="존재하지 않는 캡처 ID")
+        raise HTTPException(status_code=404, detail="존재하지 않는 스크린샷")
 
     analysis_result = await db.execute(
-        select(AnalysisResult).where(AnalysisResult.screenshot_id == screenshot_id)
+        select(AnalysisResult).where(AnalysisResult.screenshot_id == screenshot.screenshot_id)
     )
     analysis = analysis_result.scalar_one_or_none()
 
