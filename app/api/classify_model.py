@@ -5,6 +5,7 @@ import asyncio
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.core.database import get_db
 from app.ai.classifier_model import predict_category
 from app.ai.ocr import extract_text
@@ -42,7 +43,7 @@ def parse_dt(val):
 
 @router.post("/classify/model", response_model=ClassifyResponse, summary="채유니 모델")
 async def classify_with_image(file: UploadFile = File(...)):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp:
+    with tempfile.NamedTemporementFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp:
         tmp.write(await file.read())
         tmp_path = tmp.name
 
@@ -76,8 +77,18 @@ async def classify_with_image_and_save(
     finally:
         os.remove(tmp_path)
 
+    # 중복 체크
+    existing = await db.execute(
+        select(Screenshot).where(
+            Screenshot.local_identifier == local_identifier,
+            Screenshot.user_id == 1
+        )
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="이미 처리된 스크린샷입니다")
+
     screenshot = Screenshot(
-        user_id          = 1,  # 추후 JWT 미들웨어로 교체
+        user_id          = 1,
         local_identifier = local_identifier,
         ocr_text         = ocr_text,
         status           = "done",
