@@ -8,7 +8,7 @@ app = FastAPI(
     version="0.1.0"
 )
 
-app.include_router(ai.router)  
+app.include_router(ai.router, prefix = "/ai")  
 app.include_router(screenshot.router, prefix="/screenshots")
 app.include_router(place.router)
 app.include_router(auth.router)
