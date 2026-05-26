@@ -72,6 +72,16 @@ async def classify_with_image_and_save(
             raise HTTPException(status_code=400, detail="OCR 결과가 없습니다")
         result = predict_category(ocr_text)
         category = result["category"]
+        
+        CATEGORY_MAP = {
+            "place": "장소",
+            "schedule": "일정",
+            "memo": "메모",
+            "shopping": "쇼핑",
+            "trash": "기타",
+        }
+        category = CATEGORY_MAP.get(category, "기타")
+        
         confidence = result["confidence"]
         level = "높음" if confidence >= 0.8 else "보통" if confidence >= 0.5 else "낮음"
     finally:
