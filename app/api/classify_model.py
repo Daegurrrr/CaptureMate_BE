@@ -43,7 +43,7 @@ def parse_dt(val):
 
 @router.post("/classify/model", response_model=ClassifyResponse, summary="채유니 모델")
 async def classify_with_image(file: UploadFile = File(...)):
-    with tempfile.NamedTemporementFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp:
         tmp.write(await file.read())
         tmp_path = tmp.name
 
