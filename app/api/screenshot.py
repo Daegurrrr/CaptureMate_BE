@@ -14,8 +14,7 @@ from app.services.gemini_service import analyze_with_gemini
 from datetime import datetime, timezone, timedelta
 import os
 from app.ai.ocr import extract_text
-from app.ai.classifier import final_classify_with_confidence, confidence_level
-from app.ai.classifier_model import predict_category
+from app.ai.classifier_model import predict_category  # 허깅페이스 모델로 교체 (기존 classifier.py 제거)
 from app.services.kakao_service import search_place
 from app.services.naver_service import search_shopping
 
@@ -35,7 +34,7 @@ def parse_dt(val):
 async def upload_screenshot(
     file: UploadFile = File(...),
     local_identifier: str = Form(...),
-    model: str = "default",
+    # model 파라미터 제거 (허깅페이스 모델로 단일화)
     db: AsyncSession = Depends(get_db)
 ):
     # 중복 체크
@@ -56,14 +55,11 @@ async def upload_screenshot(
 
     try:
         ocr_text = extract_text(tmp_path)
-
-        if model == "new":
-            result = predict_category(ocr_text)
-            category = result["category"]
-            confidence = result["confidence"]
-            level = "높음" if confidence >= 0.8 else "보통" if confidence >= 0.5 else "낮음"
-        else:
-            category, confidence, level, _ = final_classify_with_confidence(ocr_text)
+        # 허깅페이스 모델로 분류 (기존 final_classify_with_confidence 제거)
+        result = predict_category(ocr_text)
+        category = result["category"]
+        confidence = result["confidence"]
+        level = "높음" if confidence >= 0.8 else "보통" if confidence >= 0.5 else "낮음"
     finally:
         os.remove(tmp_path)
 
@@ -147,12 +143,13 @@ async def analyze_screenshot(
 
     try:
         text = extract_text(tmp_path)
-        category, confidence, level, probs = final_classify_with_confidence(text)
+        # 허깅페이스 모델로 교체
+        result = predict_category(text)
         return {
             "ocr_text": text,
-            "category": category,
-            "confidence": round(confidence, 4),
-            "confidence_level": level,
+            "category": result["category"],
+            "confidence": result["confidence"],
+            "confidence_level": "높음" if result["confidence"] >= 0.8 else "보통" if result["confidence"] >= 0.5 else "낮음",
         }
     finally:
         os.remove(tmp_path)

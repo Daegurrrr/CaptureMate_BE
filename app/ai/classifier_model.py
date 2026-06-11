@@ -1,4 +1,4 @@
-# ai/classifier_model.py
+# ai/classifier_model_v2.py
 
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
@@ -11,6 +11,14 @@ model.eval()
 
 ID2LABEL = model.config.id2label
 
+# 영어 → 한국어 카테고리 매핑
+LABEL_MAP = {
+    "shopping": "쇼핑",
+    "place": "장소",
+    "schedule": "일정",
+    "memo": "메모",
+    "etc": "기타"
+}
 
 def predict_category(ocr_text: str) -> dict:
     if not ocr_text or not ocr_text.strip():
@@ -32,6 +40,6 @@ def predict_category(ocr_text: str) -> dict:
     confidence = float(probs[pred_id].item())
 
     return {
-        "category": ID2LABEL[pred_id],
+        "category": LABEL_MAP.get(ID2LABEL[pred_id], "기타"),  # 한국어로 변환
         "confidence": round(confidence, 4),
     }
