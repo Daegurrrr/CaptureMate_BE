@@ -38,6 +38,7 @@ uvicorn app.main:app --reload
 ```
 
 ## 📁 프로젝트 구조
+```
 CaptureMate_BE/
 ├── app/
 │   ├── main.py
@@ -72,6 +73,7 @@ CaptureMate_BE/
 ├── .github/workflows/         # GitHub Actions CI/CD
 ├── requirements.txt
 └── .env
+```
 
 ## ⚙️ 아키텍처
 프로젝트는 계층형 아키텍처로 구성되어 있습니다.
