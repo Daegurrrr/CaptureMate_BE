@@ -133,61 +133,6 @@ async def upload_screenshot(
         "gemini_result": gemini_result,
     }
 
-@router.post("/ai", summary="OCR 및 분류 테스트")
-async def analyze_screenshot(
-    file: UploadFile = File(...)
-):
-    tmp_path = f"tmp_{file.filename}"
-    with open(tmp_path, "wb") as f:
-        f.write(await file.read())
-
-    try:
-        text = extract_text(tmp_path)
-        # 허깅페이스 모델로 교체
-        result = predict_category(text)
-        return {
-            "ocr_text": text,
-            "category": result["category"],
-            "confidence": result["confidence"],
-            "confidence_level": "높음" if result["confidence"] >= 0.8 else "보통" if result["confidence"] >= 0.5 else "낮음",
-        }
-    finally:
-        os.remove(tmp_path)
-
-@router.get("", summary="스크린샷 목록 조회")
-async def get_screenshots(
-    status: str = None,
-    page: int = 1,
-    limit: int = 10,
-    db: AsyncSession = Depends(get_db)
-):
-    query = select(Screenshot).where(Screenshot.user_id == 1)
-
-    if status:
-        query = query.where(Screenshot.status == status)
-
-    count_result = await db.execute(select(func.count()).select_from(query.subquery()))
-    total = count_result.scalar()
-
-    query = query.order_by(Screenshot.created_at.desc()).offset((page - 1) * limit).limit(limit)
-    result = await db.execute(query)
-    screenshots = result.scalars().all()
-
-    return {
-        "success": True,
-        "data": [
-            {
-                "screenshot_id": s.screenshot_id,
-                "local_identifier": s.local_identifier,
-                "status": s.status,
-                "created_at": s.created_at,
-            }
-            for s in screenshots
-        ],
-        "total": total,
-        "page": page,
-    }
-
 @router.get("/detail", summary="스크린샷 상세 조회")
 async def get_screenshot(
     local_identifier: str,

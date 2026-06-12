@@ -10,6 +10,8 @@ from app.models.user import User
 from app.schemas.user import RegisterRequest, LoginRequest
 from app.core.security import create_access_token, create_refresh_token
 from app.core.config import settings
+from datetime import datetime, timezone, timedelta
+KST = timezone(timedelta(hours=9))
 
 APPLE_PUBLIC_KEY_URL = "https://appleid.apple.com/auth/keys"
 GOOGLE_TOKEN_VERIFY_URL = "https://oauth2.googleapis.com/tokeninfo"
@@ -36,6 +38,7 @@ async def local_register(data: RegisterRequest, db: AsyncSession) -> dict:
         password=pwd_context.hash(data.password),
         username=data.username,
         email=data.email,
+        created_at=datetime.now(KST).replace(tzinfo=None),
     )
     db.add(user)
     await db.commit()
@@ -119,6 +122,7 @@ async def apple_login(identity_token: str, username: str | None, db: AsyncSessio
             auth_provider="apple",
             social_id=social_id,
             username=username or "애플유저",
+            created_at=datetime.now(KST).replace(tzinfo=None),
         )
         db.add(user)
         await db.commit()
@@ -158,6 +162,7 @@ async def google_login(id_token: str, db: AsyncSession) -> dict:
             auth_provider="google",
             social_id=social_id,
             username=username,
+            created_at=datetime.now(KST).replace(tzinfo=None),
         )
         db.add(user)
         await db.commit()
@@ -198,6 +203,7 @@ async def kakao_login(access_token: str, db: AsyncSession) -> dict:
             auth_provider="kakao",
             social_id=social_id,
             username=username,
+            created_at=datetime.now(KST).replace(tzinfo=None),
         )
         db.add(user)
         await db.commit()

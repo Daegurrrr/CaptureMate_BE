@@ -2,6 +2,8 @@
 from sqlalchemy import Column, Integer, String, Float, Text, TIMESTAMP, ForeignKey
 from sqlalchemy.sql import func
 from app.core.database import Base
+from datetime import datetime, timezone, timedelta
+KST = timezone(timedelta(hours=9))
 
 class AnalysisResult(Base):
     __tablename__ = "analysis_result"
@@ -11,4 +13,4 @@ class AnalysisResult(Base):
     category         = Column(String(10), nullable=False)
     confidence_score = Column(Float, nullable=False)
     summary          = Column(Text, nullable=True)
-    analyzed_at      = Column(TIMESTAMP, server_default=func.now())
+    analyzed_at = Column(TIMESTAMP, default=lambda: datetime.now(KST).replace(tzinfo=None))
