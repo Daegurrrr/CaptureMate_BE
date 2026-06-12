@@ -16,4 +16,4 @@ class User(Base):
     email                = Column(String(255), unique=True, nullable=True)
     device_token         = Column(String(255), nullable=True)
     notification_enabled = Column(Boolean, nullable=False, default=True)
-    created_at           = Column(TIMESTAMP, nullable=False, server_default=func.now())
+    created_at = Column(TIMESTAMP, nullable=False)
