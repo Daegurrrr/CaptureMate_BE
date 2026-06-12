@@ -10,7 +10,8 @@ def build_prompt(category: str, ocr_text: str) -> str:
         "쇼핑": f"""당신은 쇼핑 스크린샷에서 정보를 추출하는 AI입니다.
         아래 OCR 텍스트에서 상품명 목록을 추출하세요. 여러 상품이 있을 경우 모두 추출하세요.
         반드시 JSON 형식으로만 응답하세요. 마크다운 없이 순수 JSON만 출력하세요.
-        추출할 수 없는 필드는 null로 설정하세요.
+        추출할 수 없는 필드는 null로 설정하세요. 상품의 정식 이름만 추출하세요. 광고 문구, 설명, 브랜드 슬로건은 제외하세요.
+가장 대표적인 상품명만 추출하세요. 동일 상품의 변형 이름은 제외하세요.
 
 OCR 텍스트:
 {ocr_text}
@@ -21,7 +22,7 @@ OCR 텍스트:
         "장소": f"""당신은 장소 스크린샷에서 정보를 추출하는 AI입니다.
 아래 OCR 텍스트에서 장소명과 주소 목록을 추출하세요. 여러 장소가 있을 경우 모두 추출하세요.
 반드시 JSON 형식으로만 응답하세요. 마크다운 없이 순수 JSON만 출력하세요.
-추출할 수 없는 필드는 null로 설정하세요.
+추출할 수 없는 필드는 null로 설정하세요. 장소명은 해시태그(#) 기호를 제거하고 저장하세요. 가장 핵심적인 장소명 하나만 추출하세요. 설명 문구는 제외하세요.
 
 OCR 텍스트:
 {ocr_text}
@@ -58,11 +59,22 @@ async def analyze_with_gemini(category: str, ocr_text: str) -> dict:
     prompt = build_prompt(category, ocr_text)
     response = await client.aio.models.generate_content(
         model="gemini-2.5-flash",
-        contents=prompt
+        contents=prompt,
+        config={
+            "temperature": 0,
+            "top_p": 1,
+            "top_k": 1,
+        }
     )
     
     try:
-        result = json.loads(response.text.strip())
+        text = response.text.strip()
+        # 혹시 마크다운 펜스 붙어있으면 제거
+        if text.startswith("```"):
+            text = text.split("```")[1]
+            if text.startswith("json"):
+                text = text[4:]
+        result = json.loads(text.strip())
     except json.JSONDecodeError:
         result = {}
     

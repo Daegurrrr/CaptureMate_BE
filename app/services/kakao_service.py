@@ -42,8 +42,8 @@ def search_place(query: str):
             {
                 "place_name": p["place_name"],
                 "address": p["address_name"],
-                "latitude": p["y"],
-                "longitude": p["x"],
+                "latitude": float(p["y"]),
+                "longitude": float(p["x"]),
                 "place_url": p["place_url"]
             }
             for p in data["documents"]

@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     # Gemini
     GEMINI_API_KEY: str
     
+    # Naver Search
+    NAVER_CLIENT_ID: str
+    NAVER_CLIENT_SECRET: str
+    
     class Config:
         env_file = ".env"
         extra = "ignore"
