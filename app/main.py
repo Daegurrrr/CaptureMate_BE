@@ -1,15 +1,16 @@
-# FastAPI 앱 생성, 라우터 등록, 서버 진입점
 from fastapi import FastAPI
-from app.api import place, auth, screenshot
+from app.api import ocr, classify, gemini, place
 
 app = FastAPI(
     title="CaptureMate API",
     version="0.1.0"
 )
 
-app.include_router(screenshot.router, prefix="/screenshots")
+# API Router
+app.include_router(ocr.router)
+app.include_router(classify.router)
+app.include_router(gemini.router)
 app.include_router(place.router)
-app.include_router(auth.router)
 
 
 @app.get("/")
