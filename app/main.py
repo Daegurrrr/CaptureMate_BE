@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.api import ocr, classify, gemini, place
+from app.api import ocr, classify, gemini
 
 app = FastAPI(
     title="CaptureMate API",
@@ -10,7 +10,6 @@ app = FastAPI(
 app.include_router(ocr.router)
 app.include_router(classify.router)
 app.include_router(gemini.router)
-app.include_router(place.router)
 
 
 @app.get("/")
