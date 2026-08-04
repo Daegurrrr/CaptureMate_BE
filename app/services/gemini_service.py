@@ -1,9 +1,21 @@
 # Gemini를 활용한 카테고리별 필드 추출 서비스
-from google import genai
+from datetime import datetime
 import json
+from google import genai
 from app.core.config import settings
+from app.services.kakao_service import search_place
+from app.services.naver_service import search_shopping
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+def parse_dt(val):
+    if val is None:
+        return None
+    try:
+        return datetime.fromisoformat(val).isoformat()
+    except Exception:
+        return None
+
 
 def build_prompt(category: str, ocr_text: str) -> str:
     prompts = {
@@ -69,7 +81,7 @@ async def analyze_with_gemini(category: str, ocr_text: str) -> dict:
     
     try:
         text = response.text.strip()
-        # 혹시 마크다운 펜스 붙어있으면 제거
+
         if text.startswith("```"):
             text = text.split("```")[1]
             if text.startswith("json"):
@@ -77,5 +89,52 @@ async def analyze_with_gemini(category: str, ocr_text: str) -> dict:
         result = json.loads(text.strip())
     except json.JSONDecodeError:
         result = {}
-    
+
+    # 장소 후처리
+    if category == "장소":
+        for item in result.get("items", []):
+            place_name = item.get("place_name")
+
+            if not place_name:
+                continue
+
+            try:
+                kakao = search_place(place_name)
+
+                if kakao.get("success") and kakao.get("places"):
+                    place = kakao["places"][0]
+
+                    item["address"] = place["address"]
+                    item["latitude"] = place["latitude"]
+                    item["longitude"] = place["longitude"]
+                    item["map_url"] = place["place_url"]
+
+            except Exception:
+                pass
+
+
+    # 쇼핑 후처리
+    elif category == "쇼핑":
+        for item in result.get("items", []):
+            product_name = item.get("product_name")
+
+            if not product_name:
+                continue
+
+            try:
+                item["shopping_url"] = search_shopping(product_name)
+                print("검색어:", product_name)
+                print("URL:", search_shopping(product_name))
+            except Exception:
+                item["shopping_url"] = None
+
+
+
+
+    # 일정 후처리
+    elif category == "일정":
+        for item in result.get("items", []):
+            item["start_at"] = parse_dt(item.get("start_at"))
+            item["end_at"] = parse_dt(item.get("end_at"))
+
     return result
